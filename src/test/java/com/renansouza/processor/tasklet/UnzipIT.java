@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import static java.util.stream.Collectors.counting;
@@ -82,6 +82,6 @@ public class UnzipIT {
                 .filter(p -> p.toFile().getName().endsWith(".xml"))
                 .collect(groupingBy(p -> StringUtils.substringBeforeLast(p.toString(), ";").replace("file\\upload\\", ""), counting()));
 
-        Assert.assertEquals(Arrays.asList(result).toString(), "[{Nfe_Producao;Recebimento=4}]");
+        Assert.assertEquals(Collections.singletonList(result).toString(), "[{Nfe_Producao;Recebimento=4}]");
     }
 }

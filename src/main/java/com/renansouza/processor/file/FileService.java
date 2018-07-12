@@ -4,6 +4,7 @@ import com.renansouza.processor.Constants;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -22,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -44,8 +44,10 @@ class FileService {
 
     void save(int flow, int env, MultipartFile[] files, HttpServletRequest request) {
 
-        Supplier<Stream<MultipartFile>> list = () -> Stream.of(files).filter(u -> u.getSize() != 0).filter(u -> StringUtils.hasText(u.getOriginalFilename()))
-                .filter(u -> Arrays.asList(Constants.getAllExtensions()).contains(StringUtils.getFilenameExtension(u.getOriginalFilename())));
+        Supplier<Stream<MultipartFile>> list = () -> Stream.of(files)
+                                                            .filter(u -> u.getSize() != 0)
+                                                            .filter(u -> StringUtils.hasText(u.getOriginalFilename()))
+                                                            .filter(u -> FilenameUtils.isExtension(u.getOriginalFilename(), Constants.getAllExtensions()));
 
         if (list.get().count() == 0) {
             throw new IllegalArgumentException("There is no valid files to upload, please verify!");
@@ -61,7 +63,7 @@ class FileService {
                 log.error("Unable to save file {}: {}", f.getOriginalFilename(), e.getLocalizedMessage());
             }
 
-            if (Arrays.asList(Constants.getCompressedExtensions()).contains(StringUtils.getFilenameExtension(f.getOriginalFilename()))) {
+            if (FilenameUtils.isExtension(f.getOriginalFilename(), Constants.getCompressedExtensions())) {
                 try {
                     JobParameters jobParameters = new JobParametersBuilder().addString("file", filename).toJobParameters();
                     jobLauncher.run(job, jobParameters);
@@ -72,7 +74,7 @@ class FileService {
         });
     }
 
-    public Resource retrieve(String filename) {
+    Resource retrieve(String filename) {
         try {
             Resource resource = new UrlResource(FileUtils.getFile(download + "/" + filename).toURI());
             if (resource.exists()) {

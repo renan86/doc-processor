@@ -42,7 +42,7 @@ public class ZIP {
         try (SevenZFile sevenZFile = new SevenZFile(file)) {
             SevenZArchiveEntry entry;
             while ((entry = sevenZFile.getNextEntry()) != null) {
-                if (!isValid(entry)) {
+                if (isNotValid(entry)) {
                     log.error("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
                     continue;
                 }
@@ -68,7 +68,7 @@ public class ZIP {
         try (ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(new FileInputStream(file))) {
             ZipArchiveEntry entry;
             while ((entry = zipArchiveInputStream.getNextZipEntry()) != null) {
-                if (!isValid(entry)) {
+                if (isNotValid(entry)) {
                     log.error("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
                     continue;
                 }
@@ -88,9 +88,9 @@ public class ZIP {
         log.debug("File {} deleted successfully", file.getName());
     }
 
-    private boolean isValid(ArchiveEntry entry) {
+    private boolean isNotValid(ArchiveEntry entry) {
 
-        return !entry.isDirectory() && FilenameUtils.isExtension(entry.getName(), Constants.getAllExtensions());
+        return entry.isDirectory() || !FilenameUtils.isExtension(entry.getName(), Constants.getAllExtensions());
     }
 
     private File newFileFromEntry(File file, ArchiveEntry entry) {

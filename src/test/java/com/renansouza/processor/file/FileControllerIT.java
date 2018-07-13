@@ -30,10 +30,9 @@ public class FileControllerIT {
     public void shouldSaveUploadedFile() throws Exception {
         Assert.assertTrue(new File("src/test/resources/Files.zip").exists());
 
-        MockMultipartFile multipartFile = new MockMultipartFile("Files.zip", "Files.zip", "", new FileInputStream(new File("src/test/resources/Files.zip")));
-        System.out.println(multipartFile.getOriginalFilename());
+        MockMultipartFile multipartFile = new MockMultipartFile("file", "Files.zip", "", new FileInputStream(new File("src/test/resources/Files.zip")).readAllBytes());
 
-        mvc.perform(MockMvcRequestBuilders.multipart("/upload").file("file", multipartFile.getBytes())
+        this.mvc.perform(MockMvcRequestBuilders.multipart("/upload").file(multipartFile)
             .param("env", "1")
             .param("flow","1"))
                 .andExpect(status().isOk())

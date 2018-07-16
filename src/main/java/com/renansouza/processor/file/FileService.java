@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -35,6 +36,12 @@ class FileService {
 
     @Value("${com.renansouza.processor.file.upload:file/upload}")
     private String upload;
+
+    @Value("#{'${app.flow}'.split(',')}")
+    private List<String> flows;
+
+    @Value("#{'${app.environment}'.split(',')}")
+    private List<String> environments;
 
     @Autowired
     private JobLauncher jobLauncher;
@@ -54,7 +61,7 @@ class FileService {
         }
 
         list.get().forEach(f -> {
-            val filename = Constants.getEnvironment()[env] + ";" + Constants.getFlow()[flow] + ";" + f.getOriginalFilename();
+            val filename = environments.get(env) + ";" + flows.get(flow) + ";" + f.getOriginalFilename();
 
             try (BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(upload + File.separator + filename)))) {
                 stream.write(f.getBytes());

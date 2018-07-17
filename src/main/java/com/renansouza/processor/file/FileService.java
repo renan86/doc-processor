@@ -37,10 +37,10 @@ class FileService {
     @Value("${com.renansouza.processor.file.upload:file/upload}")
     private String upload;
 
-    @Value("#{'${app.flow}'.split(',')}")
+    @Value("#{'${app.flow}'.split(';')}")
     private List<String> flows;
 
-    @Value("#{'${app.environment}'.split(',')}")
+    @Value("#{'${app.environment}'.split(';')}")
     private List<String> environments;
 
     @Autowired
@@ -59,7 +59,6 @@ class FileService {
         if (list.get().count() == 0) {
             throw new IllegalArgumentException("There is no valid files to upload, please verify!");
         }
-
         list.get().forEach(f -> {
             val filename = environments.get(env) + ";" + flows.get(flow) + ";" + f.getOriginalFilename();
 

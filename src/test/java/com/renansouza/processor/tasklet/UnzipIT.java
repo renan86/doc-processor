@@ -69,13 +69,13 @@ public class UnzipIT {
         });
 
         var count = FileUtils.listFiles(new File(upload), Constants.getCompressedExtensions(), false).size();
-        Assert.assertEquals(count, 0);
+        Assert.assertEquals(0, count);
 
         Map<String, Long> result = Files
                 .list(Paths.get(upload))
                 .filter(p -> p.toFile().getName().endsWith(".xml"))
                 .collect(groupingBy(p -> StringUtils.substringBeforeLast(p.toString(), ";").replace("file\\upload\\", ""), counting()));
 
-        Assert.assertEquals(Collections.singletonList(result).toString(), "[{Nfe_Producao;Recebimento=4}]");
+        Assert.assertEquals("[{Nfe_Producao;Recebimento=4}]", Collections.singletonList(result).toString());
     }
 }

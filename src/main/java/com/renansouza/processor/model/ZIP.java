@@ -43,7 +43,7 @@ public class ZIP {
             SevenZArchiveEntry entry;
             while ((entry = sevenZFile.getNextEntry()) != null) {
                 if (isNotValid(entry)) {
-                    log.error("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
+                    log.trace("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
                     continue;
                 }
 
@@ -69,7 +69,7 @@ public class ZIP {
             ZipArchiveEntry entry;
             while ((entry = zipArchiveInputStream.getNextZipEntry()) != null) {
                 if (isNotValid(entry)) {
-                    log.error("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
+                    log.trace("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
                     continue;
                 }
 
@@ -89,7 +89,6 @@ public class ZIP {
     }
 
     private boolean isNotValid(ArchiveEntry entry) {
-
         return entry.isDirectory() || !FilenameUtils.isExtension(entry.getName(), Constants.getAllExtensions());
     }
 

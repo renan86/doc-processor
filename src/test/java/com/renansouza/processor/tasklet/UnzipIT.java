@@ -7,7 +7,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +26,6 @@ import static java.util.stream.Collectors.groupingBy;
 
 @RunWith(JUnitParamsRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UnzipIT {
 
     @ClassRule
@@ -48,12 +46,12 @@ public class UnzipIT {
             Files.createDirectories(Paths.get(upload));
         }
     }
-//TODO Executar somente uma vez
+
     @Before
     public void copyTestFiles() {
         FileUtils.listFiles(new File("src/test/resources"), Constants.getCompressedExtensions(), false).forEach(file -> {
             try {
-                FileUtils.copyFile(file, new File(upload + File.separator + file.getName()));
+                FileUtils.copyFile(file, new File(upload + File.separator + "Nfe_Producao;Recebimento;" + file.getName()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -61,7 +59,7 @@ public class UnzipIT {
     }
 
     @Test
-    public void unzipFile() {
+    public void unzipFile() throws IOException {
         FileUtils.listFiles(new File(upload), Constants.getCompressedExtensions(), false).forEach(file -> {
             try {
                 zip.unzip(file);
@@ -72,11 +70,7 @@ public class UnzipIT {
 
         var count = FileUtils.listFiles(new File(upload), Constants.getCompressedExtensions(), false).size();
         Assert.assertEquals(count, 0);
-    }
 
-    //TODO mover este teste para uma classe específica
-    @Test
-    public void zcountFiles() throws IOException {
         Map<String, Long> result = Files
                 .list(Paths.get(upload))
                 .filter(p -> p.toFile().getName().endsWith(".xml"))

@@ -5,11 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -43,12 +38,6 @@ class FileService {
     @Value("#{'${app.environment}'.split(';')}")
     private List<String> environments;
 
-    @Autowired
-    private JobLauncher jobLauncher;
-
-    @Autowired
-    private Job job;
-
     void save(int flow, int env, MultipartFile[] files, HttpServletRequest request) {
 
         Supplier<Stream<MultipartFile>> list = () -> Stream.of(files)
@@ -67,15 +56,6 @@ class FileService {
                 log.info("New file saved -> Name: {} | Size: {} | Uploader: {}.", filename, FileUtils.byteCountToDisplaySize(f.getSize()), request.getRemoteAddr());
             } catch (IOException e) {
                 log.error("Unable to save file {}: {}", f.getOriginalFilename(), e.getLocalizedMessage());
-            }
-
-            if (FilenameUtils.isExtension(f.getOriginalFilename(), Constants.getCompressedExtensions())) {
-                try {
-                    JobParameters jobParameters = new JobParametersBuilder().addString("file", filename).toJobParameters();
-                    jobLauncher.run(job, jobParameters);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
             }
         });
     }

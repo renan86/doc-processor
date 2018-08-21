@@ -6,7 +6,7 @@ import org.springframework.batch.item.ItemProcessor;
 public class Processor implements ItemProcessor<XML, XML> {
 
     @Override
-    public XML process(XML xml) {
+    public XML process(final XML xml) {
         System.out.println("Passou pelo process");
         return xml;
     }

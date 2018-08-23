@@ -1,8 +1,6 @@
 package com.renansouza.processor.model;
 
 import com.renansouza.processor.Constants;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
@@ -21,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 @Component
-@Slf4j
 @Scope("prototype")
 public class ZIP {
 
@@ -43,16 +40,16 @@ public class ZIP {
             SevenZArchiveEntry entry;
             while ((entry = sevenZFile.getNextEntry()) != null) {
                 if (isNotValid(entry)) {
-                    log.trace("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
+//                    log.trace("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
                     continue;
                 }
 
-                val newFile = newFileFromEntry(file, entry);
+                File newFile = newFileFromEntry(file, entry);
                 try (FileOutputStream out = new FileOutputStream(newFile)) {
                     byte[] content = new byte[(int) entry.getSize()];
                     sevenZFile.read(content, 0, content.length);
                     out.write(content);
-                    log.debug("File {} decompressed successfully.", entry.getName());
+//                    log.debug("File {} decompressed successfully.", entry.getName());
                 }
 
                 if (FilenameUtils.isExtension(entry.getName(), Constants.getCompressedExtensions())) {
@@ -61,7 +58,7 @@ public class ZIP {
             }
         }
         Files.delete(file.toPath());
-        log.debug("File {} deleted successfully", file.getName());
+//        log.debug("File {} deleted successfully", file.getName());
     }
 
     private void decompressZip(File file) throws IOException {
@@ -69,14 +66,14 @@ public class ZIP {
             ZipArchiveEntry entry;
             while ((entry = zipArchiveInputStream.getNextZipEntry()) != null) {
                 if (isNotValid(entry)) {
-                    log.trace("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
+//                    log.trace("Skipping {} {} from decompress.", (entry.isDirectory() ? "folder" : "file"), entry.getName());
                     continue;
                 }
 
-                val newFile = newFileFromEntry(file, entry);
+                File newFile = newFileFromEntry(file, entry);
                 try (FileOutputStream output = new FileOutputStream(newFile)) {
                     IOUtils.copy(zipArchiveInputStream, output);
-                    log.debug("File {} decompressed successfully.", entry.getName());
+//                    log.debug("File {} decompressed successfully.", entry.getName());
                 }
 
                 if (FilenameUtils.isExtension(entry.getName(), Constants.getCompressedExtensions())) {
@@ -85,7 +82,7 @@ public class ZIP {
             }
         }
         Files.delete(file.toPath());
-        log.debug("File {} deleted successfully", file.getName());
+//        log.debug("File {} deleted successfully", file.getName());
     }
 
     private boolean isNotValid(ArchiveEntry entry) {

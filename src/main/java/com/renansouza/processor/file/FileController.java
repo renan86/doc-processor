@@ -56,11 +56,14 @@ class FileController {
     Job processJob;
 
     @RequestMapping("/invokejob")
-    public String handle() throws Exception {
+    public String handle() {
+        try {
+            JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis()).toJobParameters();
+            jobLauncher.run(processJob, jobParameters);
 
-        JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis()).toJobParameters();
-        jobLauncher.run(processJob, jobParameters);
-
+        } catch (Exception e) {
+//            log.error("");
+        }
         return "Batch job has been invoked";
     }
 

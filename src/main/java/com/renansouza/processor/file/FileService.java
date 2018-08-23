@@ -1,8 +1,6 @@
 package com.renansouza.processor.file;
 
 import com.renansouza.processor.Constants;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +21,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @Service
-@Slf4j
 class FileService {
 
     @Value("${com.renansouza.processor.file.download:file/download}")
@@ -49,13 +46,13 @@ class FileService {
             throw new IllegalArgumentException("There is no valid files to upload, please verify!");
         }
         list.get().forEach(f -> {
-            val filename = environments.get(env) + ";" + flows.get(flow) + ";" + f.getOriginalFilename();
+            String filename = environments.get(env) + ";" + flows.get(flow) + ";" + f.getOriginalFilename();
 
             try (BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(upload + File.separator + filename)))) {
                 stream.write(f.getBytes());
-                log.info("New file saved -> Name: {} | Size: {} | Uploader: {}.", filename, FileUtils.byteCountToDisplaySize(f.getSize()), request.getRemoteAddr());
+//                log.info("New file saved -> Name: {} | Size: {} | Uploader: {}.", filename, FileUtils.byteCountToDisplaySize(f.getSize()), request.getRemoteAddr());
             } catch (IOException e) {
-                log.error("Unable to save file {}: {}", f.getOriginalFilename(), e.getLocalizedMessage());
+//                log.error("Unable to save file {}: {}", f.getOriginalFilename(), e.getLocalizedMessage());
             }
         });
     }

@@ -1,24 +1,22 @@
 package com.renansouza.processor.config.listener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.listener.ChunkListenerSupport;
 import org.springframework.batch.core.scope.context.ChunkContext;
 
+@Slf4j
 public class ChunkExecutionListener extends ChunkListenerSupport{
-	
-	private static final Logger logger = LoggerFactory.getLogger(ChunkExecutionListener.class);
 
 	@Override
 	public void afterChunk(ChunkContext context) {
-		logger.info("After chunk");
+		log.info("After chunk");
 		super.afterChunk(context);
 	}
 
 	@Override
 	public void beforeChunk(ChunkContext context) {
 		context.attributeNames();
-		logger.info("Before chunk");
+		log.info("Before chunk");
 		super.beforeChunk(context);
 	}
 	

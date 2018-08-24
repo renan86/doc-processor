@@ -1,7 +1,6 @@
 package com.renansouza.processor.config.attempt;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -9,9 +8,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+@Slf4j
 public class AttemptWriter implements ItemWriter<Attempt> {
-
-	private final static Logger logger = LoggerFactory.getLogger(AttemptWriter.class);
 
 	@Value("${com.renansouza.processor.file.upload:file/upload}")
 	private String upload;
@@ -22,11 +20,11 @@ public class AttemptWriter implements ItemWriter<Attempt> {
 	@Override
 	public void write(List<? extends Attempt> attempts) {
 
-		logger.info("Write attempt list: {}",attempts);
+		log.info("Write attempt list: {}",attempts);
 
 		for (Attempt attempt : attempts) {
 			if (attempt.isSuccess()) {
-				//logger.info("Attempt was successful");
+				log.info("Attempt was successful");
 			}
 			moveFile(attempt);
 		}		
@@ -39,15 +37,7 @@ public class AttemptWriter implements ItemWriter<Attempt> {
 			File failedDateDirectory = new File(download + System.getProperty("file.separator")
 					+ new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis()));
 
-			if (attempt.isSuccess() && !processedDateDirectory.exists()) {
-				processedDateDirectory.mkdirs();
-			}
-
-			if (!attempt.isSuccess() && !failedDateDirectory.exists()) {
-				failedDateDirectory.mkdirs();
-			}
-
-			logger.info("Moving {} document: {}.", attempt.isSuccess() ? "processed" : "failed",
+			log.info("Moving {} document: {}.", attempt.isSuccess() ? "processed" : "failed",
 					attempt.getFile().getName());
 
 			String directory = attempt.isSuccess() ? processedDateDirectory.getAbsolutePath()

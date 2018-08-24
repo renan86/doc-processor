@@ -1,5 +1,6 @@
 package com.renansouza.processor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -15,7 +16,8 @@ import static java.nio.file.Files.notExists;
 
 @SpringBootApplication
 @EnableBatchProcessing
-public class Application {
+@Slf4j
+class Application {
 
     @Value("${com.renansouza.processor.file.upload:file/upload}")
     private String upload;
@@ -35,7 +37,7 @@ public class Application {
 
     private void verifyDir(final Path dir) throws IOException {
         if (notExists(dir)) {
-//            log.info("Creating dir {}.", dir);
+            log.info("Creating dir {}.", dir);
             Files.createDirectories(dir);
         }
     }

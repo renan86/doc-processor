@@ -9,9 +9,12 @@ import com.renansouza.processor.config.listener.JobCompletionNotificationListene
 import com.renansouza.processor.config.listener.StepExecutionNotificationListener;
 import com.renansouza.processor.tasklet.UnzipFiles;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +22,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Configuration
-public class BatchConfig {
+@EnableScheduling
+class BatchConfig {
+
+    // Coordenador -> http://www.cherryshoetech.com/2017/10/spring-batch-decision-with-spring-boot.html
+    // Splitar o schedluar -> http://walkingtechie.blogspot.com/2017/03/spring-batch-task-scheduler-example.html
 
     @Value("${chunk-size}")
     private int chunkSize;
@@ -34,6 +43,12 @@ public class BatchConfig {
 
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
+
+    @Autowired
+    JobLauncher jobLauncher;
+
+    @Autowired
+    Job job;
 
     @Autowired
     public UnzipFiles unzipFiles;
@@ -79,7 +94,7 @@ public class BatchConfig {
     public Job processAttemptJob() {
         return jobBuilderFactory.get("process-attempt-job")
                 .incrementer(new RunIdIncrementer())
-//                .listener(jobExecutionListener())
+                .listener(jobExecutionListener())
                 .flow(step()).end().build();
     }
 
@@ -90,9 +105,18 @@ public class BatchConfig {
                 .processor(processAttemptProcessor())
                 .writer(processAttemptWriter())
                 .taskExecutor(taskExecutor())
-//                .listener(stepExecutionListener())
-//                .listener(chunkListener())
+                .listener(stepExecutionListener())
+                .listener(chunkListener())
                 .throttleLimit(maxThreads).build();
+    }
+
+    // fixedDelayString = "${batch.delay}"
+    @Scheduled(fixedRateString = "${batch.rate:60000}"/*, fixedDelayString = "${batch.delay:10000}"*/)
+    public void perform() throws Exception {
+        JobParameters params = new JobParametersBuilder()
+                .addString("JobID", String.valueOf(System.currentTimeMillis()))
+                .toJobParameters();
+        jobLauncher.run(job, params);
     }
 
 }

@@ -4,18 +4,19 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+
 public class Attempt {
-	
-	File file;
+
+	private final File file;
 	private boolean success;
 	private boolean systemError;
-	private List<String> errors;
+	private final List<String> errors;
 	
 	public Attempt(File file) {
 		this.file = file;
 		this.success = true;
 		this.systemError = false;
-		this.errors = new LinkedList<String>();
+		this.errors = new LinkedList<>();
 	}
 	
 	public boolean isSuccess() {
@@ -34,7 +35,7 @@ public class Attempt {
 		return file;
 	}
 	
-	public void addError(String error) {
+	private void addError(String error) {
 		this.success = false;
 		errors.add(error);
 	}

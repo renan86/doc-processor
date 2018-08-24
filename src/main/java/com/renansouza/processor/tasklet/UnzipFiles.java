@@ -2,6 +2,7 @@ package com.renansouza.processor.tasklet;
 
 import com.renansouza.processor.Constants;
 import com.renansouza.processor.model.ZIP;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -22,6 +23,7 @@ import java.io.IOException;
  */
 
 @Component
+@Slf4j
 public class UnzipFiles implements Tasklet {
 
     @Value("${com.renansouza.processor.file.upload:file/upload}")
@@ -35,9 +37,9 @@ public class UnzipFiles implements Tasklet {
         FileUtils.listFiles(new File(upload), Constants.getCompressedExtensions(), false).forEach(file -> {
             try {
                 zip.unzip(file);
-//                log.info("File {} decompressed successfully.", file.getName());
+                log.info("File {} decompressed successfully.", file.getName());
             } catch (IOException e) {
-//                log.error("Unable to execute unzip {}.", e.getMessage());
+                log.error("Unable to execute unzip {}.", e.getMessage());
             }
         });
 

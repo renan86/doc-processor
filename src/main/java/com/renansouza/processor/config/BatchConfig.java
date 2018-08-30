@@ -110,8 +110,7 @@ class BatchConfig {
                 .throttleLimit(maxThreads).build();
     }
 
-    // fixedDelayString = "${batch.delay}"
-    @Scheduled(fixedRateString = "${batch.rate:60000}"/*, fixedDelayString = "${batch.delay:10000}"*/)
+    @Scheduled(initialDelayString = "${batch.delay:10000}", fixedDelayString = "${batch.rate:60000}")
     public void perform() throws Exception {
         JobParameters params = new JobParametersBuilder()
                 .addString("JobID", String.valueOf(System.currentTimeMillis()))

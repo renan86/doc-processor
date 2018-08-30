@@ -1,4 +1,4 @@
-package com.renansouza.processor.config.attempt;
+package com.renansouza.processor.model;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -49,4 +49,5 @@ public class Attempt {
 	public String toString() {
 		return "Attempt[" + file.getName() + ", " + success + "]";
 	}
+
 }

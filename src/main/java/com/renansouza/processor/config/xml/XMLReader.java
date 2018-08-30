@@ -1,5 +1,6 @@
-package com.renansouza.processor.config.attempt;
+package com.renansouza.processor.config.xml;
 
+import com.renansouza.processor.model.XML;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,12 +12,12 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 @Slf4j
-public class AttemptReader implements ItemReader<Attempt> {
+public class XMLReader implements ItemReader<XML> {
 
 	@Value("${com.renansouza.processor.file.upload:file/upload}")
 	private String upload;
 
-	private static final Queue<Attempt> attemptQueue = new LinkedList<>();
+	private static final Queue<XML> xmlQueue = new LinkedList<>();
 
 	@PostConstruct
 	public void initialize() {
@@ -25,22 +26,23 @@ public class AttemptReader implements ItemReader<Attempt> {
 		File inputDirectory = new File(upload);
 
 		Arrays.stream(inputDirectory.listFiles())
+				.filter(file -> file.getName().endsWith("xml"))
 				.limit(2)
-				.peek(System.out::println)
-				.forEach(file -> attemptQueue.add(new Attempt(file)));
+				.peek(file -> log.info("Processing file {}.", file.getName()))
+				.forEach(file -> xmlQueue.add(new XML(file)));
 
-		log.info("{} attempts queued.", attemptQueue.size());
+		log.info("{} xmls queued.", xmlQueue.size());
 	}
 
-	public synchronized Attempt read() {
-		Attempt attempt = null;
+	public synchronized XML read() {
+		XML xml = null;
 
-		log.info("Attempt Queue size {}.", attemptQueue.size());
-		if (attemptQueue.size() > 0) {
-			attempt = attemptQueue.remove();
+		log.info("XML Queue size {}.", xmlQueue.size());
+		if (xmlQueue.size() > 0) {
+			xml = xmlQueue.remove();
 		}
 
-		return attempt;
+		return xml;
 	}
 
 }

@@ -77,5 +77,8 @@ public class UnzipIT {
                 .collect(groupingBy(p -> StringUtils.substringBeforeLast(p.toString(), ";").replace("file\\upload\\", ""), counting()));
 
         Assert.assertEquals("[{Nfe_Producao;Recebimento=4}]", Collections.singletonList(result).toString());
+        //FIXME org.junit.ComparisonFailure:
+        //Expected :[{Nfe_Producao;Recebimento=4}]
+        //Actual   :[{file/upload/Nfe_Producao;Recebimento=4}]
     }
 }

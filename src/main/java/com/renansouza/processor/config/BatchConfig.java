@@ -1,12 +1,12 @@
 package com.renansouza.processor.config;
 
-import com.renansouza.processor.config.attempt.Attempt;
-import com.renansouza.processor.config.attempt.AttemptProcessor;
-import com.renansouza.processor.config.attempt.AttemptReader;
-import com.renansouza.processor.config.attempt.AttemptWriter;
 import com.renansouza.processor.config.listener.ChunkExecutionListener;
 import com.renansouza.processor.config.listener.JobCompletionNotificationListener;
 import com.renansouza.processor.config.listener.StepExecutionNotificationListener;
+import com.renansouza.processor.config.xml.XMLProcessor;
+import com.renansouza.processor.config.xml.XMLReader;
+import com.renansouza.processor.config.xml.XMLWriter;
+import com.renansouza.processor.model.XML;
 import com.renansouza.processor.tasklet.UnzipFiles;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -54,18 +54,18 @@ class BatchConfig {
     public UnzipFiles unzipFiles;
 
     @Bean
-    public AttemptReader processAttemptReader() {
-        return new AttemptReader();
+    public XMLReader processXMLReader() {
+        return new XMLReader();
     }
 
     @Bean
-    public AttemptProcessor processAttemptProcessor() {
-        return new AttemptProcessor();
+    public XMLProcessor processXMLProcessor() {
+        return new XMLProcessor();
     }
 
     @Bean
-    public AttemptWriter processAttemptWriter() {
-        return new AttemptWriter();
+    public XMLWriter processXMLWriter() {
+        return new XMLWriter();
     }
 
     @Bean
@@ -91,8 +91,8 @@ class BatchConfig {
     }
 
     @Bean
-    public Job processAttemptJob() {
-        return jobBuilderFactory.get("process-attempt-job")
+    public Job processXMLJob() {
+        return jobBuilderFactory.get("process-xml-job")
                 .incrementer(new RunIdIncrementer())
                 .listener(jobExecutionListener())
                 .flow(step()).end().build();
@@ -100,10 +100,10 @@ class BatchConfig {
 
     @Bean
     public Step step() {
-        return stepBuilderFactory.get("step").<Attempt, Attempt>chunk(chunkSize)
-                .reader(processAttemptReader())
-                .processor(processAttemptProcessor())
-                .writer(processAttemptWriter())
+        return stepBuilderFactory.get("step").<XML, XML>chunk(chunkSize)
+                .reader(processXMLReader())
+                .processor(processXMLProcessor())
+                .writer(processXMLWriter())
                 .taskExecutor(taskExecutor())
                 .listener(stepExecutionListener())
                 .listener(chunkListener())

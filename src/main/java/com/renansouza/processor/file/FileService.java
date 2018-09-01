@@ -31,10 +31,10 @@ class FileService {
     @Value("${com.renansouza.processor.file.upload:file/upload}")
     private String upload;
 
-    @Value("#{'${app.flow}'.split(';')}")
+    @Value("#{'${com.renansouza.processor.flow}'.split(';')}")
     private List<String> flows;
 
-    @Value("#{'${app.environment}'.split(';')}")
+    @Value("#{'${com.renansouza.processor.environment}'.split(';')}")
     private List<String> environments;
 
     void save(int flow, int env, MultipartFile[] files, HttpServletRequest request) {

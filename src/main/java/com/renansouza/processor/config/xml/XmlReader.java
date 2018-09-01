@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 @Slf4j
-public class XMLReader implements ItemReader<XML> {
+public class XmlReader implements ItemReader<XML> {
 
 	@Value("${com.renansouza.processor.file.upload:file/upload}")
 	private String upload;
@@ -21,26 +21,17 @@ public class XMLReader implements ItemReader<XML> {
 
 	@PostConstruct
 	public void initialize() {
-		log.info("scanning file directory: {}.", upload);
-
-		File inputDirectory = new File(upload);
-
-		Arrays.stream(inputDirectory.listFiles())
-				.filter(file -> file.getName().endsWith("xml"))
-				.limit(2)
-				.peek(file -> log.info("Processing file {}.", file.getName()))
-				.forEach(file -> xmlQueue.add(new XML(file)));
-
-		log.info("{} xmls queued.", xmlQueue.size());
+		Arrays.stream(new File(upload).listFiles()).filter(file -> file.getName().endsWith("xml")).forEach(file -> xmlQueue.add(new XML(file)));
 	}
 
 	public synchronized XML read() {
 		XML xml = null;
 
-		log.info("XML Queue size {}.", xmlQueue.size());
-		if (xmlQueue.size() > 0) {
-			xml = xmlQueue.remove();
+		if (xmlQueue.isEmpty()) {
+			return xml;
 		}
+		log.info("XML Queue size {}.", xmlQueue.size());
+		xml = xmlQueue.remove();
 
 		return xml;
 	}

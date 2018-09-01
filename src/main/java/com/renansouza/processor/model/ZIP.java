@@ -22,11 +22,7 @@ import java.nio.file.Files;
 @Component
 @Scope("prototype")
 @Slf4j
-public class ZIP extends Attempt {
-
-    public ZIP(File file) {
-        super(file);
-    }
+public class ZIP {
 
     public void unzip(File file) throws IOException {
 

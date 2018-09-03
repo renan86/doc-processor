@@ -3,7 +3,10 @@ package com.renansouza.processor.config;
 import com.renansouza.processor.config.xml.XmlProcessor;
 import com.renansouza.processor.config.xml.XmlReader;
 import com.renansouza.processor.config.xml.XmlWriter;
-import com.renansouza.processor.model.XML;
+import com.renansouza.processor.config.zip.ZipProcessor;
+import com.renansouza.processor.config.zip.ZipReader;
+import com.renansouza.processor.model.Xml;
+import com.renansouza.processor.model.Zip;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -21,6 +24,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+
 @Configuration
 @EnableScheduling
 class BatchConfig {
@@ -32,61 +36,83 @@ class BatchConfig {
     private int maxThreads;
 
     @Autowired
-    public JobBuilderFactory jobBuilderFactory;
+    private JobBuilderFactory jobBuilderFactory;
 
     @Autowired
-    public StepBuilderFactory stepBuilderFactory;
+    private StepBuilderFactory stepBuilderFactory;
 
     @Autowired
-    JobLauncher jobLauncher;
+    private JobLauncher jobLauncher;
 
     @Autowired
-    Job job;
+    private Job job;
 
     @Bean
-    public XmlReader processXMLReader() {
+    public ZipReader zipReader() {
+        return new ZipReader();
+    }
+
+    @Bean
+    public ZipProcessor zipProcessor() {
+        return new ZipProcessor();
+    }
+
+    @Bean
+    public XmlReader xmlReader() {
         return new XmlReader();
     }
 
     @Bean
-    public XmlProcessor processXMLProcessor() {
+    public XmlProcessor xmlProcessor() {
         return new XmlProcessor();
     }
 
     @Bean
-    public XmlWriter processXMLWriter() {
+    public XmlWriter xmlWriter() {
         return new XmlWriter();
-    }
-
-    public TaskExecutor taskExecutor() {
-        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-        taskExecutor.setConcurrencyLimit(maxThreads);
-        return taskExecutor;
     }
 
     @Bean
     public Job processXMLJob() {
-        return jobBuilderFactory.get("process-xml-job")
+        return jobBuilderFactory.get("job")
                 .incrementer(new RunIdIncrementer())
-                .flow(step())
+                .flow(zipStep())
+                .next(xmlStep())
                 .end()
                 .build();
     }
 
     @Bean
-    public Step step() {
-        return stepBuilderFactory.get("step").<XML, XML>chunk(chunkSize)
-                .reader(processXMLReader())
-                .processor(processXMLProcessor())
-                .writer(processXMLWriter())
+    public Step zipStep() {
+        return stepBuilderFactory.get("zipStep").<Zip, Zip>chunk(chunkSize)
+                .reader(zipReader())
+                .processor(zipProcessor())
                 .taskExecutor(taskExecutor())
-                .throttleLimit(maxThreads).build();
+                .throttleLimit(maxThreads)
+                .build();
+    }
+
+    @Bean
+    public Step xmlStep() {
+        return stepBuilderFactory.get("xmlStep").<Xml, Xml>chunk(chunkSize)
+                .reader(xmlReader())
+                .processor(xmlProcessor())
+                .writer(xmlWriter())
+                .taskExecutor(taskExecutor())
+                .throttleLimit(maxThreads)
+                .build();
     }
 
     @Scheduled(initialDelayString = "${batch.delay:10000}", fixedDelayString = "${batch.rate:60000}")
     public void perform() throws Exception {
         JobParameters params = new JobParametersBuilder().addString("JobID", String.valueOf(System.currentTimeMillis())).toJobParameters();
         jobLauncher.run(job, params);
+    }
+
+    private TaskExecutor taskExecutor() {
+        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+        taskExecutor.setConcurrencyLimit(maxThreads);
+        return taskExecutor;
     }
 
 }

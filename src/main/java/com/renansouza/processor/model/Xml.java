@@ -11,12 +11,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class XML extends Attempt {
+public class Xml extends Attempt {
 
     @Getter
     private final String doc;
 
-    public XML(File file) {
+    public Xml(File file) {
         super(file);
         this.doc = identifyDoc(file);
     }

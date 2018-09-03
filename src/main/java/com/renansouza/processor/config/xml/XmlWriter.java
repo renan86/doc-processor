@@ -1,6 +1,6 @@
 package com.renansouza.processor.config.xml;
 
-import com.renansouza.processor.model.XML;
+import com.renansouza.processor.model.Xml;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Slf4j
-public class XmlWriter implements ItemWriter<XML> {
+public class XmlWriter implements ItemWriter<Xml> {
 
 	@Value("${com.renansouza.processor.file.upload:file/upload}")
 	private String upload;
@@ -20,13 +20,13 @@ public class XmlWriter implements ItemWriter<XML> {
 	private String download;
 
 	@Override
-	public void write(List<? extends XML> list) {
+	public void write(List<? extends Xml> list) {
 
 		log.info("Write xml list: {}", list);
 
-		for (XML xml : list) {
+		for (Xml xml : list) {
 			if (xml.isSuccess()) {
-				log.info("XML was successful");
+				log.info("Xml was successful");
 			} else {
                 try {
                     Files.move(xml.getFile().toPath(), Paths.get(xml.getFile().getAbsolutePath().replace(upload, download)));

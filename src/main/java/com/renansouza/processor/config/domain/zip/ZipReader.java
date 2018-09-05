@@ -4,8 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import static com.renansouza.processor.config.domain.zip.predicates.ZipPredicates.isCompressed;
 
 @Slf4j
 public class ZipReader implements ItemReader<Zip> {
@@ -15,14 +19,12 @@ public class ZipReader implements ItemReader<Zip> {
 
 	private static final Queue<Zip> zipQueue = new LinkedList<>();
 
-//	@PostConstruct
-//	public void initialize() {
-//		Arrays.stream(new File(upload).listFiles()).filter(isCompressed()).forEach(file -> zipQueue.add(new Zip(file)));
-//	}
+	public void initialize() {
+		Arrays.stream(new File(upload).listFiles()).filter(isCompressed()).forEach(file -> zipQueue.add(new Zip(file)));
+	}
 
-	// TODO Validate if list can be updated each execution with .limit
-    // TODO Do the loading when executing the class
 	public synchronized Zip read() {
+	    initialize();
 		Zip zip = null;
 
 		if (zipQueue.isEmpty()) {

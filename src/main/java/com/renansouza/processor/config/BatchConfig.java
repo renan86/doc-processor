@@ -1,12 +1,12 @@
 package com.renansouza.processor.config;
 
-import com.renansouza.processor.config.xml.XmlProcessor;
-import com.renansouza.processor.config.xml.XmlReader;
-import com.renansouza.processor.config.xml.XmlWriter;
-import com.renansouza.processor.config.zip.ZipProcessor;
-import com.renansouza.processor.config.zip.ZipReader;
-import com.renansouza.processor.model.Xml;
-import com.renansouza.processor.model.Zip;
+import com.renansouza.processor.config.domain.xml.XmlProcessor;
+import com.renansouza.processor.config.domain.xml.XmlReader;
+import com.renansouza.processor.config.domain.xml.XmlWriter;
+import com.renansouza.processor.config.domain.zip.ZipProcessor;
+import com.renansouza.processor.config.domain.zip.ZipReader;
+import com.renansouza.processor.config.domain.xml.Xml;
+import com.renansouza.processor.config.domain.zip.Zip;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;

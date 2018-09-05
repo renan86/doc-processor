@@ -1,6 +1,5 @@
-package com.renansouza.processor.config.xml;
+package com.renansouza.processor.config.domain.xml;
 
-import com.renansouza.processor.model.Xml;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
@@ -11,11 +10,11 @@ public class XmlProcessor implements ItemProcessor<Xml, Xml> {
 	@Override
 	public Xml process(Xml xml) {
 
-		processAttempt(xml);
+		processXmlAttempt(xml);
 		return xml;
 	}
 
-	private void processAttempt(Xml xml) {
+	private void processXmlAttempt(Xml xml) {
         if (xml.getDoc() != null && StringUtils.isNotEmpty(xml.getDoc())) {
             log.info("File valid");
         } else {

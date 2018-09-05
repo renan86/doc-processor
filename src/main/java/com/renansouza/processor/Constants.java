@@ -1,9 +1,9 @@
 package com.renansouza.processor;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 
-@NoArgsConstructor
+@UtilityClass
 public class Constants {
 
     @Getter

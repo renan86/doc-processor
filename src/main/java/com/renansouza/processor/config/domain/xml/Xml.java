@@ -1,5 +1,6 @@
-package com.renansouza.processor.model;
+package com.renansouza.processor.config.domain.xml;
 
+import com.renansouza.processor.config.domain.Attempt;
 import lombok.Getter;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;

@@ -1,4 +1,4 @@
-package com.renansouza.processor.model;
+package com.renansouza.processor.config.domain;
 
 import java.io.File;
 import java.util.LinkedList;

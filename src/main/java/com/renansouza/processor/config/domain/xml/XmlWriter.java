@@ -1,6 +1,5 @@
-package com.renansouza.processor.config.xml;
+package com.renansouza.processor.config.domain.xml;
 
-import com.renansouza.processor.model.Xml;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;

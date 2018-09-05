@@ -1,6 +1,7 @@
-package com.renansouza.processor.model;
+package com.renansouza.processor.util;
 
 import com.renansouza.processor.Constants;
+import com.renansouza.processor.config.domain.zip.Zip;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
@@ -13,31 +14,28 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 
 @Component
 @Scope("prototype")
 @Slf4j
-public class ZIP {
+public class Decompress {
 
-    public void unzip(File file) throws IOException {
+    public void unzip(Zip zip) {
 
-        switch (FilenameUtils.getExtension(file.toString())) {
+        switch (zip.getExtensioon()) {
             case "7z":
-                decompress7Zip(file);
+                decompress7Zip(zip.getFile());
                 break;
             case "zip":
-                decompressZip(file);
+                decompressZip(zip.getFile());
                 break;
             default: throw new IllegalArgumentException("Extension not allowed, verify!");
         }
     }
 
-    private void decompress7Zip(File file) throws IOException {
+    private void decompress7Zip(File file) {
         try (SevenZFile sevenZFile = new SevenZFile(file)) {
             SevenZArchiveEntry entry;
             while ((entry = sevenZFile.getNextEntry()) != null) {
@@ -46,7 +44,7 @@ public class ZIP {
                     continue;
                 }
 
-                File newFile = newFileFromEntry(file, entry);
+                var newFile = newFileFromEntry(file, entry);
                 try (FileOutputStream out = new FileOutputStream(newFile)) {
                     byte[] content = new byte[(int) entry.getSize()];
                     sevenZFile.read(content, 0, content.length);
@@ -58,12 +56,13 @@ public class ZIP {
                     decompress7Zip(newFile);
                 }
             }
+        } catch (IOException e) {
+            log.error("Error while decompressing {}.", e.getLocalizedMessage());
         }
-        Files.delete(file.toPath());
-        log.debug("File {} deleted successfully", file.getName());
+        delete(file);
     }
 
-    private void decompressZip(File file) throws IOException {
+    private void decompressZip(File file) {
         try (ZipArchiveInputStream zipArchiveInputStream = new ZipArchiveInputStream(new FileInputStream(file))) {
             ZipArchiveEntry entry;
             while ((entry = zipArchiveInputStream.getNextZipEntry()) != null) {
@@ -72,7 +71,7 @@ public class ZIP {
                     continue;
                 }
 
-                File newFile = newFileFromEntry(file, entry);
+                var newFile = newFileFromEntry(file, entry);
                 try (FileOutputStream output = new FileOutputStream(newFile)) {
                     IOUtils.copy(zipArchiveInputStream, output);
                     log.debug("File {} decompressed successfully.", entry.getName());
@@ -82,13 +81,23 @@ public class ZIP {
                     decompressZip(newFile);
                 }
             }
+        } catch (IOException e) {
+            log.error("Error while decompressing {}.", e.getLocalizedMessage());
         }
-        Files.delete(file.toPath());
-        log.debug("File {} deleted successfully", file.getName());
+        delete(file);
     }
 
     private boolean isNotValid(ArchiveEntry entry) {
         return entry.isDirectory() || !FilenameUtils.isExtension(entry.getName(), Constants.getAllExtensions());
+    }
+
+    private static void delete(File file){
+        try {
+            Files.delete(file.toPath());
+            log.debug("File {} deleted successfully", file.getName());
+        } catch (IOException e) {
+            log.error("Error while deleting {}.", e.getLocalizedMessage());
+        }
     }
 
     private File newFileFromEntry(File file, ArchiveEntry entry) {

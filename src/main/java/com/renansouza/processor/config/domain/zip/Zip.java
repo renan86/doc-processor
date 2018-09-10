@@ -15,12 +15,8 @@ public class Zip extends Attempt {
 
     public Zip(File file) {
         super(file);
-        this.isZip = isZip(file);
+        this.isZip = FilenameUtils.isExtension(file.getName(), Constants.getCompressedExtensions());
         this.extensioon = FilenameUtils.getExtension(file.getName());
-    }
-
-    private boolean isZip(File file) {
-        return FilenameUtils.isExtension(file.getName(), Constants.getCompressedExtensions());
     }
 
 }

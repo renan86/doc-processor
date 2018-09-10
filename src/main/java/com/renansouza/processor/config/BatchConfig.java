@@ -1,20 +1,22 @@
 package com.renansouza.processor.config;
 
+import com.renansouza.processor.Constants;
+import com.renansouza.processor.config.domain.Attempt;
+import com.renansouza.processor.config.domain.xml.Xml;
 import com.renansouza.processor.config.domain.xml.XmlProcessor;
 import com.renansouza.processor.config.domain.xml.XmlReader;
 import com.renansouza.processor.config.domain.xml.XmlWriter;
+import com.renansouza.processor.config.domain.zip.Zip;
 import com.renansouza.processor.config.domain.zip.ZipProcessor;
 import com.renansouza.processor.config.domain.zip.ZipReader;
-import com.renansouza.processor.config.domain.xml.Xml;
-import com.renansouza.processor.config.domain.zip.Zip;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.Step;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.job.flow.FlowExecutionStatus;
+import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +25,9 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+
+import java.io.File;
+import java.util.Arrays;
 
 
 @Configuration
@@ -34,6 +39,9 @@ class BatchConfig {
 
     @Value("${com.renansouza.processor.max-threads}")
     private int maxThreads;
+
+    @Value("${com.renansouza.processor.file.upload:file/upload}")
+    private String upload;
 
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
@@ -73,13 +81,12 @@ class BatchConfig {
     }
 
     @Bean
-    public Job processXMLJob() {
-        return jobBuilderFactory.get("job")
-                .incrementer(new RunIdIncrementer())
-                .flow(zipStep())
-                .next(xmlStep())
-                .end()
-                .build();
+    public Step startStep() {
+        return stepBuilderFactory.get("startStep")
+                .tasklet((contribution, chunkContext) -> {
+                    Arrays.stream(new File(upload).listFiles()).map(Attempt::new).filter(Attempt::isAttemptable).forEach(attempt -> CommonQueues.attemptQueue.add(attempt));
+                    return RepeatStatus.FINISHED;
+                }).build();
     }
 
     @Bean
@@ -103,6 +110,22 @@ class BatchConfig {
                 .build();
     }
 
+    @Bean
+    public JobExecutionDecider decider() {
+        return new OddDecider();
+    }
+
+    @Bean
+    public Job job() {
+        return jobBuilderFactory.get("job")
+                .start(startStep())
+                .next(decider())
+                .from(decider()).on("xml").to(xmlStep())
+                .from(decider()).on("zip").to(zipStep())
+                .end()
+                .build();
+    }
+
     @Scheduled(initialDelayString = "${batch.delay:10000}", fixedDelayString = "${batch.rate:60000}")
     public void perform() throws Exception {
         JobParameters params = new JobParametersBuilder().addString("JobID", String.valueOf(System.currentTimeMillis())).toJobParameters();
@@ -113,6 +136,24 @@ class BatchConfig {
         SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
         taskExecutor.setConcurrencyLimit(maxThreads);
         return taskExecutor;
+    }
+
+    public static class OddDecider implements JobExecutionDecider {
+        FlowExecutionStatus flow = null;
+
+        @Override
+        public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
+            for (Attempt attempt : CommonQueues.attemptQueue) {
+                if (FilenameUtils.isExtension(attempt.getFile().getName(), Constants.getCompressedExtensions())) {
+                    CommonQueues.zipQueue.add(new Zip(attempt.getFile()));
+                    flow = new FlowExecutionStatus("zip");
+                } else {
+                    CommonQueues.xmlQueue.add(new Xml(attempt.getFile()));
+                    flow = new FlowExecutionStatus("xml");
+                }
+            }
+            return flow;
+        }
     }
 
 }

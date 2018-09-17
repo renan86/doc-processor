@@ -1,5 +1,6 @@
 package com.renansouza.processor.config.domain.xml;
 
+import com.renansouza.processor.config.CommonQueues;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,7 @@ public class XmlWriter implements ItemWriter<Xml> {
                     log.error("Erro while moving file {}: {} ", xml.getFile().getName(), e.getMessage());
                 }
             }
+			CommonQueues.xmlQueue.remove(xml);
 		}		
 	}
 

@@ -10,11 +10,12 @@ import com.renansouza.processor.config.domain.zip.Zip;
 import com.renansouza.processor.config.domain.zip.ZipProcessor;
 import com.renansouza.processor.config.domain.zip.ZipReader;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.batch.core.*;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.job.flow.FlowExecutionStatus;
-import org.springframework.batch.core.job.flow.JobExecutionDecider;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,10 +84,17 @@ class BatchConfig {
     @Bean
     public Step startStep() {
         return stepBuilderFactory.get("startStep")
-                .tasklet((contribution, chunkContext) -> {
-                    Arrays.stream(new File(upload).listFiles()).map(Attempt::new).filter(Attempt::isAttemptable).forEach(attempt -> CommonQueues.attemptQueue.add(attempt));
-                    return RepeatStatus.FINISHED;
-                }).build();
+            .tasklet((contribution, chunkContext) -> {
+                CommonQueues.attemptQueue.clear();
+                Arrays.stream(new File(upload).listFiles()).map(Attempt::new).filter(Attempt::isAttemptable).forEach(attempt -> /*CommonQueues.attemptQueue.add(attempt)*/ {
+                    if (FilenameUtils.isExtension(attempt.getFile().getName(), Constants.getCompressedExtensions())) {
+                        CommonQueues.zipQueue.add(new Zip(attempt.getFile()));
+                    } else {
+                        CommonQueues.xmlQueue.add(new Xml(attempt.getFile()));
+                    }
+                });
+                return RepeatStatus.FINISHED;
+            }).build();
     }
 
     @Bean
@@ -111,22 +119,15 @@ class BatchConfig {
     }
 
     @Bean
-    public JobExecutionDecider decider() {
-        return new OddDecider();
-    }
-
-    @Bean
     public Job job() {
         return jobBuilderFactory.get("job")
                 .start(startStep())
-                .next(decider())
-                .from(decider()).on("xml").to(xmlStep())
-                .from(decider()).on("zip").to(zipStep())
-                .end()
+                .next(zipStep())
+                .next(xmlStep())
                 .build();
     }
 
-    @Scheduled(initialDelayString = "${batch.delay:10000}", fixedDelayString = "${batch.rate:60000}")
+    @Scheduled(initialDelayString = "${batch.delay:10000}", fixedDelayString = "${batch.rate:30000}")
     public void perform() throws Exception {
         JobParameters params = new JobParametersBuilder().addString("JobID", String.valueOf(System.currentTimeMillis())).toJobParameters();
         jobLauncher.run(job, params);
@@ -136,24 +137,6 @@ class BatchConfig {
         SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
         taskExecutor.setConcurrencyLimit(maxThreads);
         return taskExecutor;
-    }
-
-    public static class OddDecider implements JobExecutionDecider {
-        FlowExecutionStatus flow = null;
-
-        @Override
-        public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution) {
-            for (Attempt attempt : CommonQueues.attemptQueue) {
-                if (FilenameUtils.isExtension(attempt.getFile().getName(), Constants.getCompressedExtensions())) {
-                    CommonQueues.zipQueue.add(new Zip(attempt.getFile()));
-                    flow = new FlowExecutionStatus("zip");
-                } else {
-                    CommonQueues.xmlQueue.add(new Xml(attempt.getFile()));
-                    flow = new FlowExecutionStatus("xml");
-                }
-            }
-            return flow;
-        }
     }
 
 }

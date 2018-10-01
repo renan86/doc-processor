@@ -15,7 +15,7 @@ public class XmlProcessor implements ItemProcessor<Xml, Xml> {
 	}
 
 	private void processXmlAttempt(Xml xml) {
-        if (xml.getDoc() != null && StringUtils.isNotEmpty(xml.getDoc())) {
+        if (xml.getDocType() != null && StringUtils.isNotEmpty(xml.getDocType())) {
             log.info("File valid");
         } else {
 			xml.addSystemError("File invalid");

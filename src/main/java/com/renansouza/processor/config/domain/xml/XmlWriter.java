@@ -26,16 +26,20 @@ public class XmlWriter implements ItemWriter<Xml> {
 
 		for (Xml xml : list) {
 			if (xml.isSuccess()) {
-				log.info("Xml was successful");
+				try {
+					Files.deleteIfExists(xml.getFile().toPath());
+				} catch (IOException e) {
+					log.error("Error while deleting file {}: {} ", xml.getFile().getName(), e.getMessage());
+				}
 			} else {
                 try {
                     Files.move(xml.getFile().toPath(), Paths.get(xml.getFile().getAbsolutePath().replace(upload, download)));
 				    log.info("Moving document: {} | {}.", xml.getFile().getName(), xml.getErrors());
                 } catch (IOException e) {
-                    log.error("Erro while moving file {}: {} ", xml.getFile().getName(), e.getMessage());
+                    log.error("Error while moving file {}: {} ", xml.getFile().getName(), e.getMessage());
                 }
             }
-			CommonQueues.xmlQueue.remove(xml);
+			CommonQueues.getXmlQueue().remove(xml);
 		}		
 	}
 

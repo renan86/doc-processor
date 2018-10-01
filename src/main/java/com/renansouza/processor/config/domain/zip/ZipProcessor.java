@@ -13,7 +13,7 @@ public class ZipProcessor implements ItemProcessor<Zip, Zip> {
 	@Override
 	public Zip process(Zip zip) {
         decompress.unzip(zip);
-        CommonQueues.zipQueue.remove(zip);
+        CommonQueues.getZipQueue().remove(zip);
 		return zip;
 	}
 

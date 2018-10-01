@@ -10,13 +10,13 @@ import com.renansouza.processor.config.domain.zip.Zip;
 import com.renansouza.processor.config.domain.zip.ZipProcessor;
 import com.renansouza.processor.config.domain.zip.ZipReader;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +29,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Objects;
 
 
 @Configuration
@@ -85,12 +86,12 @@ class BatchConfig {
     public Step startStep() {
         return stepBuilderFactory.get("startStep")
             .tasklet((contribution, chunkContext) -> {
-                CommonQueues.attemptQueue.clear();
-                Arrays.stream(new File(upload).listFiles()).map(Attempt::new).filter(Attempt::isAttemptable).forEach(attempt -> /*CommonQueues.attemptQueue.add(attempt)*/ {
+                CommonQueues.getAttemptQueue().clear();
+                Arrays.stream(Objects.requireNonNull(new File(upload).listFiles())).map(Attempt::new).filter(Attempt::isAttemptable).forEach(attempt -> /*CommonQueues.attemptQueue.add(attempt)*/ {
                     if (FilenameUtils.isExtension(attempt.getFile().getName(), Constants.getCompressedExtensions())) {
-                        CommonQueues.zipQueue.add(new Zip(attempt.getFile()));
+                        CommonQueues.getZipQueue().add(new Zip(attempt.getFile()));
                     } else {
-                        CommonQueues.xmlQueue.add(new Xml(attempt.getFile()));
+                        CommonQueues.getXmlQueue().add(new Xml(attempt.getFile()));
                     }
                 });
                 return RepeatStatus.FINISHED;
@@ -128,7 +129,7 @@ class BatchConfig {
     }
 
     @Scheduled(initialDelayString = "${batch.delay:10000}", fixedDelayString = "${batch.rate:30000}")
-    public void perform() throws Exception {
+    public void perform() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
         JobParameters params = new JobParametersBuilder().addString("JobID", String.valueOf(System.currentTimeMillis())).toJobParameters();
         jobLauncher.run(job, params);
     }

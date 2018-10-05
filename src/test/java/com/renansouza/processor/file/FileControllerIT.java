@@ -39,4 +39,18 @@ public class FileControllerIT {
                 .andExpect(content().string("Successfully uploaded files."));
     }
 
+    @Test
+    public void shouldFailUploadedFile() throws Exception {
+        Assert.assertTrue(new File("src/test/resources/Files.zip").exists());
+
+        MockMultipartFile multipartFile = new MockMultipartFile("file", "Files.zip", "", new FileInputStream(new File("src/test/resources/Files.zip")).readAllBytes());
+
+        this.mvc.perform(MockMvcRequestBuilders.multipart("/uploads").file(multipartFile)
+                .param("env", "1")
+                .param("flow","1"))
+                .andExpect(status().isNotFound())
+                .andExpect(status().is(404))
+                .andExpect(content().string(""));
+    }
+
 }

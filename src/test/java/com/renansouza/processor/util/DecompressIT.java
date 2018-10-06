@@ -61,7 +61,7 @@ public class DecompressIT {
             Map<String, Long> result = Files
                     .list(Paths.get(upload))
                     .filter(p -> p.toFile().getName().endsWith(".xml"))
-                    .collect(groupingBy(p -> StringUtils.substringBeforeLast(p.toString(), ";").replace("file\\upload\\", ""), counting()));
+                    .collect(groupingBy(p -> StringUtils.substringBeforeLast(p.toString(), ";").replace("file" + File.separator + "upload" + File.separator, ""), counting()));
 
             Assert.assertEquals("[{Nfe_Producao;Recebimento=4}]", Collections.singletonList(result).toString());
         } catch (IOException e) {

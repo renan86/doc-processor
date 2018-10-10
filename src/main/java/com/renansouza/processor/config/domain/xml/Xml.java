@@ -33,6 +33,7 @@ public class Xml extends Attempt {
             return document.getDocumentElement().getTagName();
         } catch (ParserConfigurationException | SAXException | IOException e) {
             log.error("Error while parsing/reading given file {}: {}", file.getName(), e.getMessage());
+            //FIXME create a expection and throw here
             throw new RuntimeException(e.getMessage());
         }
     }

@@ -16,7 +16,7 @@ public class Attempt {
 	private boolean systemError;
 	private final List<String> errors;
 	private final boolean isAttemptable;
-	
+
 	public Attempt(File file) {
 		this.file = file;
 		this.success = true;

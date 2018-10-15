@@ -1,7 +1,7 @@
 package com.renansouza.processor.config.domain.xml;
 
 import com.renansouza.processor.config.domain.Attempt;
-import lombok.Getter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -14,27 +14,35 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 @Slf4j
+@Data
 public class Xml extends Attempt {
 
-    @Getter
-    private final String docType;
+
+    private String docType;
+    private int environment;
+    private String accesskey;
+    private int status;
 
     public Xml(File file) {
         super(file);
-        this.docType = identifyDoc(file);
+        identifyDoc(file);
     }
 
-    private String identifyDoc(File file) {
+    private void identifyDoc(File file) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder parser;
         try {
             parser = factory.newDocumentBuilder();
             Document document = parser.parse(new FileInputStream(file));
-            return document.getDocumentElement().getTagName();
+
+            setDocType(document.getDocumentElement().getTagName());
+            setEnvironment(0);
+            setAccesskey("0");
+            setStatus(0);
+
+            parser.reset();
         } catch (ParserConfigurationException | SAXException | IOException e) {
             log.error("Error while parsing/reading given file {}: {}", file.getName(), e.getMessage());
-            //FIXME create a expection and throw here
-            throw new RuntimeException(e.getMessage());
         }
     }
 }

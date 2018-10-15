@@ -1,6 +1,8 @@
 package com.renansouza.processor.xml;
 
+import com.renansouza.processor.config.domain.xml.Xml;
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +13,7 @@ import java.io.File;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class Xml {
+public class XmlIT {
 
     @Value("${com.renansouza.processor.file.upload:file/upload}")
     private String upload;
@@ -20,15 +22,10 @@ public class Xml {
     public void shouldParseFile() {
         FileUtils.listFiles(new File(upload), new String[]{"xml"}, false).forEach(file -> {
             try {
-
+                Assert.assertEquals("nfeProc", new Xml(file).getDocType());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-    }
-
-    @Test
-    public void shouldNotParseFile() {
-
     }
 }

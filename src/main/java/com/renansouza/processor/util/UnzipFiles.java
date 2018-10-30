@@ -1,8 +1,7 @@
-package com.renansouza.processor.config;
+package com.renansouza.processor.util;
 
 import com.renansouza.processor.Constants;
 import com.renansouza.processor.config.domain.zip.Zip;
-import com.renansouza.processor.util.Decompress;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.StepContribution;
